@@ -1,6 +1,7 @@
 import anthropic
 import streamlit as st
 import streamlit.components.v1 as components
+from datetime import datetime
 
 PROFILE_PATH = "tarik_profile.md"
 
@@ -48,6 +49,12 @@ function equalize() {
 [50, 200, 500, 1000].forEach(function(t) { setTimeout(equalize, t); });
 </script>
 """
+
+
+def log_question(question: str) -> None:
+    with open("chat_logs.txt", "a") as f:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"[{timestamp}] {question}\n")
 
 
 @st.cache_data
@@ -160,6 +167,7 @@ def main():
     if st.session_state.pending_question:
         question = st.session_state.pending_question
         st.session_state.pending_question = None
+        log_question(question)
         st.session_state.messages.append({"role": "user", "content": question})
         with st.spinner("Thinking…"):
             answer = get_response(client, system_prompt, st.session_state.messages[:-1], question)
@@ -208,6 +216,7 @@ def main():
 
     # ── Chat input ────────────────────────────────────────────────────────────
     if prompt := st.chat_input("Ask anything about Tarik…"):
+        log_question(prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         with st.chat_message("assistant"):
